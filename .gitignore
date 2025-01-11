@@ -1,0 +1,55 @@
+# Ignore backup files
+*.bak
+*.tmp
+*.swp
+*.swo
+*.old
+*.orig
+
+# Ignore output and log files
+*.log
+*.out
+*.err
+
+# Ignore temporary files created by text editors
+*.~*
+*.un~
+*.~lock.*
+
+# Ignore Visual Studio Code workspace files
+.vscode/
+.vscode/*
+
+# Ignore Git temporary files
+*.rej
+*.orig
+*.merge_file_*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+
+# Ignore Microsoft Office temporary files
+~$*
+
+# Ignore all files within folders `tmp` and `work`
+tmp/
+work/
+
+# Ignore OS specific files
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Linux
+*~
