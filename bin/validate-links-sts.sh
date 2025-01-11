@@ -9,7 +9,7 @@
 ###
 ###   - URL: The original URL of the link.
 ###   - Status: The HTTP status code of the link.
-###   - Redirect: The URL the original URL redirects to.
+###   - Effective URL: The URL the original URL redirects to (if any).
 ###   - Title: The `<title>` of the page the URL points to (also works for
 ###     `<title>` elements having attributes).
 ###
@@ -30,7 +30,7 @@
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 declare -r SCRIPT_DIR
-# shellcheck source=./lib_common.sh
+# shellcheck source=/dev/null
 source "${SCRIPT_DIR}/lib_common.sh"
 
 SCRIPT_NAME="$(get_script_name)"
@@ -82,7 +82,9 @@ function bom() {
 # ------------------------------------------------------------------------------
 
 function extract_links() {
-  curl -s "${URL}" | sed -n '/<table[^>]*id="'"${TABLE_ID}"'"/,/<\/table>/p' | sed -n 's/.*<td[^>]*>\(http[^<]*\)<\/td>.*/\1/p'
+  curl --silent "${URL}" | \
+    sed -n '/<table[^>]*id="'"${TABLE_ID}"'"/,/<\/table>/p' | \
+    sed -n 's/.*<td[^>]*>\(http[^<]*\)<\/td>.*/\1/p'
 }
 
 function csv_string() {
@@ -129,7 +131,7 @@ function replace_entities() {
 # processed pages.
 function get_titles() {
   local -r link="${1}"
-  curl -s "${link}" | sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
+  curl --silent "${link}" | sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
 }
 
 # Get the first title of a page.
@@ -140,7 +142,7 @@ function get_titles() {
 function get_first_non_empty_title_or_url() {
   local -r link="${1}"
   local title
-  title="$(get_titles "${link}" | sed '/^$/d' | head -n 1)"
+  title="$(get_titles "${link}" | sed '/^$/d' | head --lines 1)"
   if [[ -z "${title}" ]]; then
     get_host_from_url "${link}"
   else
@@ -160,7 +162,7 @@ function validate_links() {
   local tmp_file
   tmp_file="$(mktemp)"
 
-  # Write BOM to the file.
+  # Write BOM to the file to ensure Excel opens the file correctly as UTF-8.
   bom >"${tmp_file}"
   echo "URL${CSV_DELIMITER}Status${CSV_DELIMITER}Effective URL${CSV_DELIMITER}Title" >>"${tmp_file}"
 
