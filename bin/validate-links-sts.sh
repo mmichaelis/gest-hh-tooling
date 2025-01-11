@@ -98,6 +98,17 @@ function csv_string() {
   fi
 }
 
+# Get the host from a URL.
+# Also strips any leading 'www' from the beginning.
+function get_host_from_url() {
+  local -r url="${1}"
+  local host
+  host="$(echo "${url}" | sed -n 's/https\?:\/\/\([^\/]*\).*/\1/p')"
+  # Remove leading 'www.' from the host.
+  host="${host//www./}"
+  echo "${host}"
+}
+
 # Replace given entities.
 function replace_entities() {
   local -r text="${1}"
@@ -121,9 +132,20 @@ function get_titles() {
   curl -s "${link}" | sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
 }
 
-function get_first_title() {
+# Get the first title of a page.
+#
+# This function is intended to provide the first `<title>` element of a page.
+# Any empty `<title>` element is skipped, and the next one is considered.
+# If all `<title>` elements are empty, the URL is returned (shortened).
+function get_first_non_empty_title_or_url() {
   local -r link="${1}"
-  get_titles "${link}" | head -n 1
+  local title
+  title="$(get_titles "${link}" | sed '/^$/d' | head -n 1)"
+  if [[ -z "${title}" ]]; then
+    get_host_from_url "${link}"
+  else
+    echo "${title}"
+  fi
 }
 
 function validate_links() {
@@ -150,7 +172,7 @@ function validate_links() {
   for link in "${links[@]}"; do
     status_code="$(curl -s -o /dev/null -w "%{http_code}" "${link}")"
     effective_link="$(curl -s -L -o /dev/null -w "%{url_effective}" "${link}")"
-    raw_title="$(get_first_title "${effective_link}")"
+    raw_title="$(get_first_non_empty_title_or_url "${effective_link}")"
     title="$(replace_entities "${raw_title}")"
 
     info "Validated: ${link} (${status_code}) -> ${effective_link} (${title})"
