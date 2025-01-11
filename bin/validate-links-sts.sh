@@ -42,6 +42,8 @@ declare -r CSV_DELIMITER=","
 declare -r CSV_QUOTE="\""
 declare -r TAB_CHAR=$'\t'
 
+declare -r BOT_USER_AGENT="Mozilla/5.0 (compatible; GESTBot/1.0; +https://gest-hamburg.de/)"
+
 # ------------------------------------------------------------------------------
 # Help
 # ------------------------------------------------------------------------------
@@ -64,17 +66,22 @@ Examples:
 }
 
 # ------------------------------------------------------------------------------
-# BOM (Byte Order Mark)
-#
-# The BOM is a Unicode character used to signal the byte order of a text file or
-# stream. It is encoded at the beginning of the file or stream and is used to
-# indicate the endianness of the text. The BOM is optional for UTF-8, but may be
-# included at the start of encoded data as an indication that the text stream is
-# Unicode and to identify the encoding scheme used.
+# Excel Tooling
 # ------------------------------------------------------------------------------
 
+# BOM (Byte Order Mark)
+#
+# Help Excel to correctly determine the encoding of the CSV file.
 function bom() {
   echo -ne '\xEF\xBB\xBF'
+}
+
+# Excel CSV Header
+#
+# Provide a header for the CSV-file that helps Excel to correctly interpret the
+# file as a CSV file, like, for example, specifying the delimiter.
+function meta() {
+  echo "sep=${CSV_DELIMITER}"
 }
 
 # ------------------------------------------------------------------------------
@@ -82,7 +89,7 @@ function bom() {
 # ------------------------------------------------------------------------------
 
 function extract_links() {
-  curl --silent "${URL}" | \
+  curl --silent "${URL}" --user-agent "${BOT_USER_AGENT}" | \
     sed -n '/<table[^>]*id="'"${TABLE_ID}"'"/,/<\/table>/p' | \
     sed -n 's/.*<td[^>]*>\(http[^<]*\)<\/td>.*/\1/p'
 }
@@ -131,7 +138,8 @@ function replace_entities() {
 # processed pages.
 function get_titles() {
   local -r link="${1}"
-  curl --silent "${link}" | sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
+  curl --silent "${link}"  --user-agent "${BOT_USER_AGENT}" | \
+    sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
 }
 
 # Get the first title of a page.
@@ -164,6 +172,7 @@ function validate_links() {
 
   # Write BOM to the file to ensure Excel opens the file correctly as UTF-8.
   bom >"${tmp_file}"
+  meta >>"${tmp_file}"
   echo "URL${CSV_DELIMITER}Status${CSV_DELIMITER}Effective URL${CSV_DELIMITER}Title" >>"${tmp_file}"
 
   local status_code
@@ -172,8 +181,8 @@ function validate_links() {
   local title
 
   for link in "${links[@]}"; do
-    status_code="$(curl -s -o /dev/null -w "%{http_code}" "${link}")"
-    effective_link="$(curl -s -L -o /dev/null -w "%{url_effective}" "${link}")"
+    status_code="$(curl --silent --output /dev/null --write-out "%{http_code}" --user-agent "${BOT_USER_AGENT}" "${link}")"
+    effective_link="$(curl --silent --location --output /dev/null --write-out "%{url_effective}" --user-agent "${BOT_USER_AGENT}" "${link}")"
     raw_title="$(get_first_non_empty_title_or_url "${effective_link}")"
     title="$(replace_entities "${raw_title}")"
 
