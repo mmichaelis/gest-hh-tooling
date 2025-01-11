@@ -88,6 +88,21 @@ function replace_entities() {
   echo "${replaced}"
 }
 
+# Get all titles of a page.
+#
+# While normally only one `<title>` element is present, this function is
+# intended to provide a list of all `<title>` elements as observed on some
+# processed pages.
+function get_titles() {
+  local -r link="${1}"
+  curl -s "${link}" | sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
+}
+
+function get_first_title() {
+  local -r link="${1}"
+  get_titles "${link}" | head -n 1
+}
+
 function validate_links() {
   local file_name="${1}"
 
@@ -110,7 +125,7 @@ function validate_links() {
   for link in "${links[@]}"; do
     status_code="$(curl -s -o /dev/null -w "%{http_code}" "${link}")"
     effective_link="$(curl -s -L -o /dev/null -w "%{url_effective}" "${link}")"
-    raw_title="$(curl -s "${effective_link}" | sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p')"
+    raw_title="$(get_first_title "${effective_link}")"
     title="$(replace_entities "${raw_title}")"
 
     info "Validated: ${link} (${status_code}) -> ${effective_link} (${title})"
