@@ -110,7 +110,7 @@ function validate_links() {
   for link in "${links[@]}"; do
     status_code="$(curl -s -o /dev/null -w "%{http_code}" "${link}")"
     effective_link="$(curl -s -L -o /dev/null -w "%{url_effective}" "${link}")"
-    raw_title="$(curl -s "${effective_link}" | sed -n 's/.*<title[^>]*>\([^<]]*\)<\/title>.*/\1/p')"
+    raw_title="$(curl -s "${effective_link}" | sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p')"
     title="$(replace_entities "${raw_title}")"
 
     info "Validated: ${link} (${status_code}) -> ${effective_link} (${title})"
