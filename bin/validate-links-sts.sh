@@ -38,8 +38,9 @@ declare -r SCRIPT_NAME
 
 declare -r URL="https://gest-hamburg.de/stadtteilschulen/"
 declare -r TABLE_ID="tablepress-stadtteilschulen"
-declare -r CSV_DELIMITER=";"
+declare -r CSV_DELIMITER=","
 declare -r CSV_QUOTE="\""
+declare -r TAB_CHAR=$'\t'
 
 # ------------------------------------------------------------------------------
 # Help
@@ -63,6 +64,20 @@ Examples:
 }
 
 # ------------------------------------------------------------------------------
+# BOM (Byte Order Mark)
+#
+# The BOM is a Unicode character used to signal the byte order of a text file or
+# stream. It is encoded at the beginning of the file or stream and is used to
+# indicate the endianness of the text. The BOM is optional for UTF-8, but may be
+# included at the start of encoded data as an indication that the text stream is
+# Unicode and to identify the encoding scheme used.
+# ------------------------------------------------------------------------------
+
+function bom() {
+  echo -ne '\xEF\xBB\xBF'
+}
+
+# ------------------------------------------------------------------------------
 # Validate Links
 # ------------------------------------------------------------------------------
 
@@ -70,9 +85,17 @@ function extract_links() {
   curl -s "${URL}" | sed -n '/<table[^>]*id="'"${TABLE_ID}"'"/,/<\/table>/p' | sed -n 's/.*<td[^>]*>\(http[^<]*\)<\/td>.*/\1/p'
 }
 
-function escape_csv() {
+function csv_string() {
   local -r text="${1}"
-  echo "${text//\"/\"\"}"
+  local -r escaped="${text//\"/\"\"}"
+  # If the string starts with any problematic character in Excel (so that
+  # Excel would interpret it as a formula), add a tab in front of it.
+  # This applies to the following leading characters: `=`, `+`, `-`, `@`.
+  if [[ "${escaped}" =~ ^[=+-@] ]]; then
+    echo -e "${CSV_QUOTE}${TAB_CHAR}${escaped}${CSV_QUOTE}"
+  else
+    echo "${CSV_QUOTE}${escaped}${CSV_QUOTE}"
+  fi
 }
 
 # Replace given entities.
@@ -115,7 +138,9 @@ function validate_links() {
   local tmp_file
   tmp_file="$(mktemp)"
 
-  echo "URL${CSV_DELIMITER}Status${CSV_DELIMITER}Effective URL${CSV_DELIMITER}Title" >"${tmp_file}"
+  # Write BOM to the file.
+  bom >"${tmp_file}"
+  echo "URL${CSV_DELIMITER}Status${CSV_DELIMITER}Effective URL${CSV_DELIMITER}Title" >>"${tmp_file}"
 
   local status_code
   local effective_link
@@ -130,7 +155,7 @@ function validate_links() {
 
     info "Validated: ${link} (${status_code}) -> ${effective_link} (${title})"
 
-    echo "${CSV_QUOTE}$(escape_csv "${link}")${CSV_QUOTE}${CSV_DELIMITER}${status_code}${CSV_DELIMITER}${CSV_QUOTE}$(escape_csv "${effective_link}")${CSV_QUOTE}${CSV_DELIMITER}${CSV_QUOTE}$(escape_csv "${title}")${CSV_QUOTE}" >>"${tmp_file}"
+    echo "$(csv_string "${link}")${CSV_DELIMITER}${status_code}${CSV_DELIMITER}$(csv_string "${effective_link}")${CSV_DELIMITER}$(csv_string "${title}")" >>"${tmp_file}"
   done
 
   if [[ "${file_name}" == "-" ]]; then
