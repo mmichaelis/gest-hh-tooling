@@ -1,18 +1,18 @@
 # validate-links-sts.sh
 
-## NAME
+## Name
 
 `validate-links-sts.sh`
 
 Validates links to "Stadtteilschulen" (StS) at <https://gest-hamburg.de/stadtteilschulen/>.
 
-## SYNOPSIS
+## Synopsis
 
 ```bash
 validate-links-sts.sh [-?|-h] [-f <file>]
 ```
 
-## DESCRIPTION
+## Description
 
 The `validate-links-sts.sh` script checks the validity of links within a
 specific table on the "Stadtteilschulen" page of the GEST Hamburg website. It
@@ -24,6 +24,15 @@ redirects), and the title of the page it points to.
 
 - `-?|-h`: Show the help message.
 - `-f <file>`: File to write the CSV output to ('-' for STDOUT; the default).
+
+### Tips
+
+**HTML Output:** If your target file has the extension `.html` a HTML document
+is created instead. Same as for the CSV file, applications such as Excel are
+able to open this file and the contained table.
+
+It may be easier to use this HTML table as input to Excel, sparing some extra
+import steps, then doing so with a CSV file.
 
 ### Functionality
 

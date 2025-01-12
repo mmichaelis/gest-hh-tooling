@@ -9,6 +9,12 @@
 ###   source "${SCRIPT_DIR}/lib_common.sh"
 ###
 
+# Guard variable to prevent multiple imports
+if [[ -n "${LIB_COMMON_SH_INCLUDED}" ]]; then
+  return
+fi
+LIB_COMMON_SH_INCLUDED=1
+
 # Provide option to trigger debug output with different verbosity levels.
 declare -ri DEBUG=${DEBUG:-0}
 

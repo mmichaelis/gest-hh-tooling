@@ -28,6 +28,8 @@ SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 declare -r SCRIPT_DIR
 # shellcheck source=/dev/null
 source "${SCRIPT_DIR}/lib_common.sh"
+# shellcheck source=/dev/null
+source "${SCRIPT_DIR}/lib_html.sh"
 
 SCRIPT_NAME="$(get_script_name)"
 declare -r SCRIPT_NAME
@@ -193,10 +195,16 @@ function validate_links() {
 
   if [[ "${file_name}" == "-" ]]; then
     cat "${tmp_file}"
-    rm -f "${tmp_file}"
   else
-    mv "${tmp_file}" "${file_name}"
+    # If filename ends with `.html`, convert to a HTML file.
+    if [[ "${file_name}" == *".html" ]]; then
+      csv_to_html "${tmp_file}" "${file_name}"
+    else
+      mv "${tmp_file}" "${file_name}"
+    fi
   fi
+
+  rm -f "${tmp_file}"
 
   info "Validation completed."
 }
