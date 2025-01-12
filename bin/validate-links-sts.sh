@@ -13,10 +13,6 @@
 ###   - Title: The `<title>` of the page the URL points to (also works for
 ###     `<title>` elements having attributes).
 ###
-### The CSV applies the Excel dialect, thus, the delimiter is a semicolon, and
-### the text is enclosed by double quotes (escaping is done by doubling double
-### quotes).
-###
 ### By default, the script outputs to STDOUT. If a file is provided as an
 ### argument, the output is written to that file.
 ###
@@ -36,12 +32,17 @@ source "${SCRIPT_DIR}/lib_common.sh"
 SCRIPT_NAME="$(get_script_name)"
 declare -r SCRIPT_NAME
 
+# The URL to grab
 declare -r URL="https://gest-hamburg.de/stadtteilschulen/"
+# The ID of the table to extract links from
 declare -r TABLE_ID="tablepress-stadtteilschulen"
-declare -r CSV_DELIMITER=","
+# The delimiter for the CSV file
+# Note, that for Excel on German systems, the delimiter is preferred to be a
+# semicolon (`;`) instead of a comma (`,`).
+declare -r CSV_DELIMITER=";"
+# The quote character for the CSV file to mark text fields.
 declare -r CSV_QUOTE="\""
-declare -r TAB_CHAR=$'\t'
-
+# User-Agent for the bot.
 declare -r BOT_USER_AGENT="Mozilla/5.0 (compatible; GESTBot/1.0; +https://gest-hamburg.de/)"
 
 # ------------------------------------------------------------------------------
@@ -66,45 +67,30 @@ Examples:
 }
 
 # ------------------------------------------------------------------------------
-# Excel Tooling
+# Output Utility Functions
 # ------------------------------------------------------------------------------
 
 # BOM (Byte Order Mark)
 #
-# Help Excel to correctly determine the encoding of the CSV file.
+# Help (at least) Excel to correctly determine the encoding of the CSV file.
 function bom() {
   echo -ne '\xEF\xBB\xBF'
 }
 
-# Excel CSV Header
-#
-# Provide a header for the CSV-file that helps Excel to correctly interpret the
-# file as a CSV file, like, for example, specifying the delimiter.
-function meta() {
-  echo "sep=${CSV_DELIMITER}"
+function csv_string() {
+  local -r text="${1}"
+  local -r escaped="${text//\"/\"\"}"
+  echo "${CSV_QUOTE}${escaped}${CSV_QUOTE}"
 }
 
 # ------------------------------------------------------------------------------
-# Validate Links
+# Remote Data Extraction Utility Functions
 # ------------------------------------------------------------------------------
 
 function extract_links() {
   curl --silent "${URL}" --user-agent "${BOT_USER_AGENT}" | \
     sed -n '/<table[^>]*id="'"${TABLE_ID}"'"/,/<\/table>/p' | \
     sed -n 's/.*<td[^>]*>\(http[^<]*\)<\/td>.*/\1/p'
-}
-
-function csv_string() {
-  local -r text="${1}"
-  local -r escaped="${text//\"/\"\"}"
-  # If the string starts with any problematic character in Excel (so that
-  # Excel would interpret it as a formula), add a tab in front of it.
-  # This applies to the following leading characters: `=`, `+`, `-`, `@`.
-  if [[ "${escaped}" =~ ^[=+-@] ]]; then
-    echo -e "${CSV_QUOTE}${TAB_CHAR}${escaped}${CSV_QUOTE}"
-  else
-    echo "${CSV_QUOTE}${escaped}${CSV_QUOTE}"
-  fi
 }
 
 # Get the host from a URL.
@@ -158,6 +144,25 @@ function get_first_non_empty_title_or_url() {
   fi
 }
 
+# ------------------------------------------------------------------------------
+# Validate Links
+# ------------------------------------------------------------------------------
+
+function validate_link() {
+  local link="${1}"
+  local status_code
+  local effective_link
+  local raw_title
+  local title
+
+  status_code="$(curl --silent --output /dev/null --write-out "%{http_code}" --user-agent "${BOT_USER_AGENT}" "${link}")"
+  effective_link="$(curl --silent --location --output /dev/null --write-out "%{url_effective}" --user-agent "${BOT_USER_AGENT}" "${link}")"
+  raw_title="$(get_first_non_empty_title_or_url "${effective_link}")"
+  title="$(replace_entities "${raw_title}")"
+
+  echo "$(csv_string "${link}")${CSV_DELIMITER}${status_code}${CSV_DELIMITER}$(csv_string "${effective_link}")${CSV_DELIMITER}$(csv_string "${title}")"
+}
+
 function validate_links() {
   local file_name="${1}"
 
@@ -170,10 +175,11 @@ function validate_links() {
   local tmp_file
   tmp_file="$(mktemp)"
 
-  # Write BOM to the file to ensure Excel opens the file correctly as UTF-8.
-  bom >"${tmp_file}"
-  meta >>"${tmp_file}"
-  echo "URL${CSV_DELIMITER}Status${CSV_DELIMITER}Effective URL${CSV_DELIMITER}Title" >>"${tmp_file}"
+  {
+    # Only output BOM if the output is not STDOUT.
+    [[ "${file_name}" == "-" ]] || bom
+    echo "URL${CSV_DELIMITER}Status${CSV_DELIMITER}Effective URL${CSV_DELIMITER}Title"
+  } >"${tmp_file}"
 
   local status_code
   local effective_link
@@ -181,26 +187,18 @@ function validate_links() {
   local title
 
   for link in "${links[@]}"; do
-    status_code="$(curl --silent --output /dev/null --write-out "%{http_code}" --user-agent "${BOT_USER_AGENT}" "${link}")"
-    effective_link="$(curl --silent --location --output /dev/null --write-out "%{url_effective}" --user-agent "${BOT_USER_AGENT}" "${link}")"
-    raw_title="$(get_first_non_empty_title_or_url "${effective_link}")"
-    title="$(replace_entities "${raw_title}")"
-
-    info "Validated: ${link} (${status_code}) -> ${effective_link} (${title})"
-
-    echo "$(csv_string "${link}")${CSV_DELIMITER}${status_code}${CSV_DELIMITER}$(csv_string "${effective_link}")${CSV_DELIMITER}$(csv_string "${title}")" >>"${tmp_file}"
+    info "Validating: ${link}"
+    validate_link "${link}" >>"${tmp_file}"
   done
 
   if [[ "${file_name}" == "-" ]]; then
     cat "${tmp_file}"
+    rm -f "${tmp_file}"
   else
     mv "${tmp_file}" "${file_name}"
   fi
 
   info "Validation completed."
-
-  # Cleanup temporary files
-  rm -f "${tmp_file}"
 }
 
 # ------------------------------------------------------------------------------
@@ -210,6 +208,7 @@ function validate_links() {
 function main() {
   local file_name="-"
 
+  # Parse arguments
   while getopts ":?f:h" opt; do
     case "${opt}" in
     f)
