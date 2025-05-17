@@ -46,6 +46,8 @@ declare -r CSV_DELIMITER=";"
 declare -r CSV_QUOTE="\""
 # User-Agent for the bot.
 declare -r BOT_USER_AGENT="Mozilla/5.0 (compatible; GESTBot/1.0; +https://gest-hamburg.de/)"
+declare -ir CURL_CONNECT_TIMEOUT_SECONDS=10
+declare -ir CURL_MAX_TIME_SECONDS=60
 
 # ------------------------------------------------------------------------------
 # Help
@@ -89,10 +91,66 @@ function csv_string() {
 # Remote Data Extraction Utility Functions
 # ------------------------------------------------------------------------------
 
+function read_url() {
+  local -r url="${1}"
+  curl \
+    --silent \
+    --user-agent "${BOT_USER_AGENT}" \
+    --connect-timeout ${CURL_CONNECT_TIMEOUT_SECONDS} \
+    --max-time ${CURL_MAX_TIME_SECONDS} \
+    "${url}"
+}
+
+function get_http_status_code() {
+  local -r url="${1}"
+  local status_code
+
+  status_code=$(curl \
+    --head \
+    --silent \
+    --user-agent "${BOT_USER_AGENT}" \
+    --connect-timeout "${CURL_CONNECT_TIMEOUT_SECONDS}" \
+    --max-time "${CURL_MAX_TIME_SECONDS}" \
+    --write-out "%{http_code}" \
+    --output /dev/null \
+    "${url}" 2>/dev/null) || {
+    # If curl fails, check if it was a timeout (exit code 28)
+    if [[ $? -eq 28 ]]; then
+      echo "408"
+    else
+      echo "000"
+    fi
+    return
+  }
+
+  echo "${status_code}"
+}
+
+function get_effective_url() {
+  local -r url="${1}"
+  local effective_url
+
+  effective_url=$(curl \
+    --silent \
+    --location \
+    --user-agent "${BOT_USER_AGENT}" \
+    --connect-timeout "${CURL_CONNECT_TIMEOUT_SECONDS}" \
+    --max-time "${CURL_MAX_TIME_SECONDS}" \
+    --write-out "%{url_effective}" \
+    --output /dev/null \
+    "${url}" 2>/dev/null) || {
+    # We cannot get the effective URL, so we return the original URL.
+    echo "${url}"
+    return
+  }
+
+  echo "${effective_url}"
+}
+
 function extract_links() {
-  curl --silent "${URL}" --user-agent "${BOT_USER_AGENT}" | \
-    sed -n '/<table[^>]*id="'"${TABLE_ID}"'"/,/<\/table>/p' | \
-    sed -n 's/.*<td[^>]*>\(http[^<]*\)<\/td>.*/\1/p'
+  read_url "${URL}" |
+    sed --quiet '/<table[^>]*id="'"${TABLE_ID}"'"/,/<\/table>/p' |
+    sed --quiet 's/.*<td[^>]*>\(http[^<]*\)<\/td>.*/\1/p'
 }
 
 # Get the host from a URL.
@@ -100,7 +158,7 @@ function extract_links() {
 function get_host_from_url() {
   local -r url="${1}"
   local host
-  host="$(echo "${url}" | sed -n 's/https\?:\/\/\([^\/]*\).*/\1/p')"
+  host="$(echo "${url}" | sed --quiet 's/https\?:\/\/\([^\/]*\).*/\1/p')"
   # Remove leading 'www.' from the host.
   host="${host//www./}"
   echo "${host}"
@@ -126,8 +184,8 @@ function replace_entities() {
 # processed pages.
 function get_titles() {
   local -r link="${1}"
-  curl --silent "${link}"  --user-agent "${BOT_USER_AGENT}" | \
-    sed -n 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
+  read_url "${link}" |
+    sed --quiet 's/.*<title[^>]*>\([^<]*\)<\/title>.*/\1/p'
 }
 
 # Get the first title of a page.
@@ -154,12 +212,15 @@ function validate_link() {
   local link="${1}"
   local status_code
   local effective_link
-  local raw_title
+  local raw_title=""
   local title
 
-  status_code="$(curl --silent --output /dev/null --write-out "%{http_code}" --user-agent "${BOT_USER_AGENT}" "${link}")"
-  effective_link="$(curl --silent --location --output /dev/null --write-out "%{url_effective}" --user-agent "${BOT_USER_AGENT}" "${link}")"
-  raw_title="$(get_first_non_empty_title_or_url "${effective_link}")"
+  status_code="$(get_http_status_code "${link}")"
+  effective_link="$(get_effective_url "${link}")"
+  # Only get the title if the status code does not signal a timeout (408).
+  if [[ "${status_code}" != "408" ]]; then
+    raw_title="$(get_first_non_empty_title_or_url "${effective_link}")"
+  fi
   title="$(replace_entities "${raw_title}")"
 
   echo "$(csv_string "${link}")${CSV_DELIMITER}${status_code}${CSV_DELIMITER}$(csv_string "${effective_link}")${CSV_DELIMITER}$(csv_string "${title}")"
