@@ -83,7 +83,11 @@ function bom() {
 
 function csv_string() {
   local -r text="${1}"
-  local -r escaped="${text//\"/\"\"}"
+  local sanitized="${text}"
+  # Remove leading =, +, -, @ and any following spaces
+  sanitized="${sanitized##[=+\-@] }"
+  sanitized="${sanitized##[=+\-@]}"
+  local escaped="${sanitized//\"/\"\"}"
   echo "${CSV_QUOTE}${escaped}${CSV_QUOTE}"
 }
 
