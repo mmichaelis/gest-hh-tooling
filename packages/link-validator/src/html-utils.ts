@@ -38,7 +38,7 @@ export function getHostFromUrl(url: string): string {
   } catch {
     // Fallback to regex if URL parsing fails
     const match = /https?:\/\/(?<host>[^/]+)/.exec(url);
-    const host = match?.groups?.host ?? url;
+    const host = match?.groups?.['host'] ?? url;
     return host.replace(/^www\./, '');
   }
 }

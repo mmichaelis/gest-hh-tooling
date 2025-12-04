@@ -52,7 +52,7 @@ export default tseslint.config(
       'curly': ['error', 'all'],
       'default-case': 'error',
       'default-case-last': 'error',
-      'dot-notation': 'error',
+      'dot-notation': ['error', { allowPattern: '^(DEBUG|host)$' }],
       'eqeqeq': ['error', 'always'],
       'grouped-accessor-pairs': 'error',
       'guard-for-in': 'error',

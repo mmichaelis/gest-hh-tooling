@@ -3,7 +3,7 @@
  * All logs go to stderr to keep stdout clean for data output.
  */
 
-const DEBUG = process.env.DEBUG === '1';
+const DEBUG = process.env['DEBUG'] === '1';
 
 /**
  * Check if stderr is a TTY (terminal) for colored output.
