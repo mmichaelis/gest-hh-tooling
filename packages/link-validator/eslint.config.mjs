@@ -1,0 +1,182 @@
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import globals from 'globals';
+
+export default tseslint.config(
+  // Base recommended configs
+  eslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+
+  // Global settings
+  {
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        ...globals.es2023,
+      },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+
+  // Custom strict rules
+  {
+    rules: {
+      // Possible Problems - Enhanced
+      'no-constructor-return': 'error',
+      'no-duplicate-imports': 'error',
+      'no-new-native-nonconstructor': 'error',
+      'no-promise-executor-return': 'error',
+      'no-self-compare': 'error',
+      'no-template-curly-in-string': 'error',
+      'no-unmodified-loop-condition': 'error',
+      'no-unreachable-loop': 'error',
+      'no-unused-private-class-members': 'error',
+      'no-use-before-define': ['error', {
+        functions: false,
+        classes: true,
+        variables: true
+      }],
+      'require-atomic-updates': 'error',
+
+      // Best Practices
+      'array-callback-return': 'error',
+      'block-scoped-var': 'error',
+      'complexity': ['warn', 10],
+      'consistent-return': 'error',
+      'curly': ['error', 'all'],
+      'default-case': 'error',
+      'default-case-last': 'error',
+      'dot-notation': 'error',
+      'eqeqeq': ['error', 'always'],
+      'grouped-accessor-pairs': 'error',
+      'guard-for-in': 'error',
+      'max-classes-per-file': ['error', 1],
+      'no-alert': 'error',
+      'no-caller': 'error',
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+      'no-else-return': 'error',
+      'no-empty-function': 'error',
+      'no-eval': 'error',
+      'no-extend-native': 'error',
+      'no-extra-bind': 'error',
+      'no-extra-label': 'error',
+      'no-floating-decimal': 'error',
+      'no-implicit-coercion': 'error',
+      'no-implied-eval': 'error',
+      'no-invalid-this': 'error',
+      'no-iterator': 'error',
+      'no-labels': 'error',
+      'no-lone-blocks': 'error',
+      'no-loop-func': 'error',
+      'no-multi-str': 'error',
+      'no-new': 'error',
+      'no-new-func': 'error',
+      'no-new-wrappers': 'error',
+      'no-octal-escape': 'error',
+      'no-param-reassign': 'error',
+      'no-proto': 'error',
+      'no-return-assign': 'error',
+      'no-script-url': 'error',
+      'no-sequences': 'error',
+      'no-throw-literal': 'error',
+      'no-unneeded-ternary': 'error',
+      'no-useless-call': 'error',
+      'no-useless-concat': 'error',
+      'no-useless-return': 'error',
+      'no-void': 'error',
+      'prefer-named-capture-group': 'warn',
+      'prefer-promise-reject-errors': 'error',
+      'prefer-regex-literals': 'error',
+      'radix': 'error',
+      'require-await': 'error',
+      'yoda': 'error',
+
+      // Stylistic
+      'camelcase': ['error', { properties: 'always' }],
+      'consistent-this': ['error', 'self'],
+      'func-name-matching': 'error',
+      'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
+      'max-depth': ['warn', 4],
+      'max-lines': ['warn', { max: 500, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
+      'max-nested-callbacks': ['warn', 3],
+      'max-params': ['warn', 5],
+      'max-statements': ['warn', 30],
+      'new-cap': 'error',
+      'no-array-constructor': 'error',
+      'no-bitwise': 'error',
+      'no-continue': 'warn',
+      'no-inline-comments': 'off',
+      'no-lonely-if': 'error',
+      'no-multi-assign': 'error',
+      'no-negated-condition': 'warn',
+      'no-nested-ternary': 'error',
+      'no-new-object': 'error',
+      'no-plusplus': 'off',
+      'no-underscore-dangle': ['error', { allowAfterThis: true }],
+      'no-unneeded-ternary': 'error',
+      'one-var': ['error', 'never'],
+      'operator-assignment': 'error',
+      'prefer-exponentiation-operator': 'error',
+      'prefer-object-spread': 'error',
+      'spaced-comment': ['error', 'always'],
+
+      // ES6+
+      'arrow-body-style': ['error', 'as-needed'],
+      'no-confusing-arrow': 'error',
+      'no-duplicate-imports': 'error',
+      'no-useless-computed-key': 'error',
+      'no-useless-constructor': 'error',
+      'no-useless-rename': 'error',
+      'no-var': 'error',
+      'object-shorthand': 'error',
+      'prefer-arrow-callback': 'error',
+      'prefer-const': 'error',
+      'prefer-destructuring': ['error', { object: true, array: false }],
+      'prefer-rest-params': 'error',
+      'prefer-spread': 'error',
+      'prefer-template': 'error',
+      'symbol-description': 'error',
+
+      // TypeScript-specific enhancements
+      '@typescript-eslint/explicit-function-return-type': ['error', {
+        allowExpressions: true,
+        allowTypedFunctionExpressions: true,
+        allowHigherOrderFunctions: true,
+      }],
+      '@typescript-eslint/explicit-module-boundary-types': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unnecessary-condition': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/promise-function-async': 'error',
+      '@typescript-eslint/require-array-sort-compare': 'error',
+      '@typescript-eslint/restrict-template-expressions': ['error', {
+        allowNumber: true,
+        allowBoolean: true,
+      }],
+      '@typescript-eslint/strict-boolean-expressions': ['error', {
+        allowString: false,
+        allowNumber: false,
+        allowNullableObject: false,
+      }],
+      '@typescript-eslint/switch-exhaustiveness-check': 'error',
+    },
+  },
+
+  // Ignore patterns
+  {
+    ignores: ['dist/**', 'node_modules/**', '*.js', '*.mjs'],
+  }
+);

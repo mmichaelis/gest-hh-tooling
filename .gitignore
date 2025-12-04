@@ -20,6 +20,23 @@
 .vscode/
 .vscode/*
 
+# Node.js
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.pnpm-store/
+.pnpm-debug.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Coverage
+coverage/
+.nyc_output/
+
 # Ignore Git temporary files
 *.rej
 *.orig

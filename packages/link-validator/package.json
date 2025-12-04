@@ -1,0 +1,41 @@
+{
+  "name": "@gest-hh/link-validator",
+  "version": "1.0.0",
+  "description": "Link validation tool for gest-hamburg.de",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "validate-links-sts": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "axios": "catalog:",
+    "cheerio": "catalog:",
+    "commander": "catalog:",
+    "csv-stringify": "catalog:"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "keywords": [
+    "link-validator",
+    "gest-hamburg"
+  ],
+  "author": "mmichaelis",
+  "license": "SEE LICENSE IN LICENSE"
+}

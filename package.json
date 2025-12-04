@@ -1,0 +1,32 @@
+{
+  "name": "@gest-hh/tooling",
+  "version": "1.0.0",
+  "description": "Tooling to ease administration of gest-hamburg.de",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.11.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.23.0",
+  "scripts": {
+    "preinstall": "node scripts/check-pnpm.mjs",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "type-check": "pnpm -r type-check",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test"
+  },
+  "keywords": [
+    "gest-hamburg",
+    "tooling",
+    "link-validator",
+    "calendar"
+  ],
+  "author": "mmichaelis",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmichaelis/gest-hh-tooling.git"
+  }
+}

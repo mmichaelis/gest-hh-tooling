@@ -1,0 +1,81 @@
+name: Validate Links (Stadtteilschulen)
+
+on:
+  workflow_dispatch:
+    inputs:
+      output_format:
+        description: 'Output format'
+        required: false
+        default: 'csv'
+        type: choice
+        options:
+          - csv
+          - html
+  schedule:
+    # Run weekly on Monday at 6:00 AM UTC
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.23.0
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Run link validation
+        run: |
+          cd packages/link-validator
+          node dist/cli.js -f ../../link-validation-results.csv
+
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: link-validation-results-${{ github.run_number }}
+          path: link-validation-results.csv
+          retention-days: 90
+
+      - name: Display summary
+        run: |
+          echo "## Link Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Validation completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Results are available as an artifact in this workflow run." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          TOTAL_LINKS=$(tail -n +2 link-validation-results.csv | wc -l)
+          echo "📊 Total links validated: **${TOTAL_LINKS}**" >> $GITHUB_STEP_SUMMARY

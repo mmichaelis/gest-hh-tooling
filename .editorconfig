@@ -6,10 +6,15 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{js,css,html}]
+[*.{js,mjs,cjs,ts,css,html,json,yaml,yml}]
 indent_style = space
 indent_size = 2
 
 [*.sh]
 indent_style = space
 indent_size = 2
+
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
