@@ -26,20 +26,22 @@ pnpm install
 Modern TypeScript implementation for validating links to Stadtteilschulen.
 
 ```bash
-# Run directly with tsx (development)
 cd packages/link-validator
-pnpm dev
-
-# Build and run
-pnpm build
-node dist/cli.js
-
-# With options
-pnpm dev -- -f results.csv
-pnpm dev -- --help
+pnpm tsx src/cli.ts -f results.csv
 ```
 
 See [packages/link-validator/README.md](packages/link-validator/README.md) for details.
+
+### Calendar Generator (TypeScript)
+
+Generate WordPress calendar CSV files from simple date lists.
+
+```bash
+cd packages/calendar-generator
+pnpm tsx src/cli.ts -i dates.txt -o calendar.csv
+```
+
+See [packages/calendar-generator/README.md](packages/calendar-generator/README.md) for details.
 
 ### Legacy Shell Scripts
 
@@ -70,12 +72,13 @@ pnpm test
 
 ```
 .
-├── bin/                    # Legacy shell scripts
+├── bin/                      # Legacy shell scripts
 ├── packages/
-│   └── link-validator/    # TypeScript link validator
-├── scripts/               # Build and utility scripts
-├── pnpm-workspace.yaml    # PNPM workspace configuration
-└── package.json           # Root package configuration
+│   ├── link-validator/      # TypeScript link validator
+│   └── calendar-generator/  # TypeScript calendar CSV generator
+├── scripts/                 # Build and utility scripts
+├── pnpm-workspace.yaml      # PNPM workspace configuration
+└── package.json             # Root package configuration
 ```
 
 ## Contributing

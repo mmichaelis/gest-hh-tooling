@@ -19,8 +19,9 @@ catalog:
   # CLI utilities
   commander: ^12.1.0
 
-  # Date handling (for future calendar tool)
+  # Date handling
   date-fns: ^4.1.0
+  date-fns-tz: ^3.2.0
 
   # Development dependencies
   typescript: ~5.6.3

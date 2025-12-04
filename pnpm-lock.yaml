@@ -24,6 +24,9 @@ catalogs:
     csv-stringify:
       specifier: ^6.5.1
       version: 6.6.0
+    date-fns:
+      specifier: ^4.1.0
+      version: 4.1.0
     eslint:
       specifier: ^9.13.0
       version: 9.37.0
@@ -46,6 +49,46 @@ catalogs:
 importers:
 
   .: {}
+
+  packages/calendar-generator:
+    dependencies:
+      commander:
+        specifier: 'catalog:'
+        version: 12.1.0
+      csv-stringify:
+        specifier: 'catalog:'
+        version: 6.6.0
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      date-fns-tz:
+        specifier: ^3.2.0
+        version: 3.2.0(date-fns@4.1.0)
+    devDependencies:
+      '@eslint/js':
+        specifier: 'catalog:'
+        version: 9.37.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.18.8
+      eslint:
+        specifier: 'catalog:'
+        version: 9.37.0
+      globals:
+        specifier: 'catalog:'
+        version: 15.15.0
+      tsx:
+        specifier: 'catalog:'
+        version: 4.20.6
+      typescript:
+        specifier: 'catalog:'
+        version: 5.6.3
+      typescript-eslint:
+        specifier: 'catalog:'
+        version: 8.45.0(eslint@9.37.0)(typescript@5.6.3)
+      vitest:
+        specifier: 'catalog:'
+        version: 2.1.9(@types/node@22.18.8)
 
   packages/link-validator:
     dependencies:
@@ -778,6 +821,14 @@ packages:
 
   csv-stringify@6.6.0:
     resolution: {integrity: sha512-YW32lKOmIBgbxtu3g5SaiqWNwa/9ISQt2EcgOq0+RAIFufFp9is6tqNnKahqE5kuKvrnYAzs28r+s6pXJR8Vcw==}
+
+  date-fns-tz@3.2.0:
+    resolution: {integrity: sha512-sg8HqoTEulcbbbVXeg84u5UnlsQa8GS5QXMqjjYIhS4abEVVKIUwe0/l/UhrZdKaL/W5eWZNlbTeEIiOXTcsBQ==}
+    peerDependencies:
+      date-fns: ^3.0.0 || ^4.0.0
+
+  date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1947,6 +1998,12 @@ snapshots:
   css-what@6.2.2: {}
 
   csv-stringify@6.6.0: {}
+
+  date-fns-tz@3.2.0(date-fns@4.1.0):
+    dependencies:
+      date-fns: 4.1.0
+
+  date-fns@4.1.0: {}
 
   debug@4.4.3:
     dependencies:

@@ -1,0 +1,44 @@
+{
+  "name": "@gest-hh/calendar-generator",
+  "version": "1.0.0",
+  "description": "Generate calendar CSV files for WordPress import from simple date lists",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "generate-calendar": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "commander": "catalog:",
+    "csv-stringify": "catalog:",
+    "date-fns": "catalog:",
+    "date-fns-tz": "^3.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "keywords": [
+    "calendar",
+    "csv",
+    "events",
+    "wordpress",
+    "gest-hamburg"
+  ],
+  "author": "mmichaelis",
+  "license": "SEE LICENSE IN LICENSE"
+}
